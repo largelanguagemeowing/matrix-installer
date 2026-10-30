@@ -1,0 +1,28 @@
+[Unit]
+Description=lk-jwt-service (Matrix OpenID -> LiveKit token)
+Requires=matrix-egress.service
+After=matrix-egress.service
+
+[Container]
+ContainerName=matrix-jwt
+Image=${jwt_image}
+AutoUpdate=registry
+# SSRF containment: this service fetches URLs derived from client-supplied server names
+# (federation discovery), so it lives on its own network. It cannot reach Synapse, Postgres
+# or LiveKit directly; Caddy answers for our own hostnames (see matrix-caddy.container).
+# Synapse joins this network only to proxy /rtc/livekit requests to it.
+LogDriver=journald
+Network=matrix-jwt.network
+EnvironmentFile=${conf_dir}/jwt.env
+Volume=${conf_dir}/lk-jwt-registration.yaml:/etc/lk-jwt/registration.yaml:ro,Z
+# exec form: the image is FROM scratch, so there is no /bin/sh to run a plain string with
+HealthCmd=CMD /lk-jwt-service-healthcheck
+HealthInterval=30s
+ReadOnly=true
+NoNewPrivileges=true
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,6 @@
+[Unit]
+Description=Restart LiveKit to load the renewed certificate
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/systemctl --user try-restart matrix-livekit.service

@@ -1,0 +1,23 @@
+[Unit]
+Description=Postgres for Synapse
+
+[Container]
+ContainerName=matrix-postgres
+Image=${postgres_image}
+AutoUpdate=registry
+LogDriver=journald
+Network=matrix-db.network
+EnvironmentFile=${conf_dir}/postgres.env
+Volume=matrix-postgres-data:${postgres_data_mount}
+HealthCmd=pg_isready -U synapse -d synapse
+HealthInterval=10s
+HealthStartPeriod=30s
+Notify=healthy
+NoNewPrivileges=true
+
+[Service]
+Restart=always
+TimeoutStartSec=300
+
+[Install]
+WantedBy=default.target

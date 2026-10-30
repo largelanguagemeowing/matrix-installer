@@ -1,0 +1,83 @@
+server_name: "${server_name}"
+public_baseurl: "https://${matrix_host}/"
+pid_file: /data/homeserver.pid
+
+listeners:
+  - port: 8008
+    tls: false
+    type: http
+    x_forwarded: true
+    bind_addresses: ["${synapse_ip}"]
+    resources:
+      - names: [client, federation]
+        compress: false
+
+database:
+  name: psycopg2
+  args:
+    user: synapse
+    password: "${postgres_password}"
+    database: synapse
+    host: matrix-postgres
+    cp_min: 5
+    cp_max: 10
+
+log_config: /config/log.yaml
+media_store_path: /data/media_store
+signing_key_path: /data/signing.key
+
+trusted_key_servers:
+  - server_name: matrix.org
+suppress_key_server_warning: true
+
+report_stats: false
+enable_registration: false
+registration_shared_secret: "${registration_secret}"
+macaroon_secret_key: "${macaroon_secret}"
+form_secret: "${form_secret}"
+
+# MatrixRTC / Element Call requirements
+max_event_delay_duration: 24h
+rc_message:
+  per_second: 0.5
+  burst_count: 30
+rc_delayed_event_mgmt:
+  per_second: 1
+  burst_count: 20
+experimental_features:
+  msc3266_enabled: true
+  msc4222_enabled: true
+  msc4502_enabled: true # lk-jwt-service as application service
+  msc4512_enabled: true
+
+app_service_config_files:
+  - /config/lk-jwt-registration.yaml
+
+# Caddy sees real client addresses (socket activation), so
+# Synapse's default per-IP limits apply as intended.
+remote_media_download_burst_count: 10G
+remote_media_download_per_second: 10M
+
+# SSRF: Synapse fetches remote URLs for federation, remote media and push. Never let those
+# reach private space, including the Podman networks (10.89.0.0/16 by default).
+url_preview_enabled: false
+ip_range_blacklist:
+  - 127.0.0.0/8
+  - 10.0.0.0/8
+  - 172.16.0.0/12
+  - 192.168.0.0/16
+  - 100.64.0.0/10
+  - 192.0.0.0/24
+  - 169.254.0.0/16
+  - 192.88.99.0/24
+  - 198.18.0.0/15
+  - 192.0.2.0/24
+  - 198.51.100.0/24
+  - 203.0.113.0/24
+  - 224.0.0.0/4
+  - ::1/128
+  - fe80::/10
+  - fc00::/7
+  - 2001:db8::/32
+  - ff00::/8
+  - fec0::/10

@@ -1,0 +1,9 @@
+[Unit]
+Description=Keep the egress filter's host-address list fresh
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=5min
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,29 @@
+[Unit]
+Description=Caddy reverse proxy (the only public HTTP entrypoint)
+Requires=matrix-egress.service matrix-caddy.socket
+After=matrix-egress.service matrix-caddy.socket
+
+[Container]
+ContainerName=matrix-caddy
+Image=${caddy_image}
+AutoUpdate=registry
+# LiveKit posts participant webhooks to https://${matrix_host}/livekit/jwt/sfu_webhook; resolve it here.
+LogDriver=journald
+Network=matrix.network:alias=${matrix_host}
+# Internal DNS for the JWT service: every hostname it may validate a local token against
+# (matrix, rtc and, if Caddy serves it, the bare server name) resolves to Caddy, so token
+# validation never needs hairpin NAT or the public internet.
+Network=matrix-jwt.network:${jwt_aliases}
+# No PublishPort: 80/443 come from matrix-caddy.socket, which keeps real client addresses.
+Volume=${conf_dir}/Caddyfile:/etc/caddy/Caddyfile:ro,Z
+Volume=${caddy_data_dir}:/data:z
+HealthCmd=wget -q -O /dev/null http://127.0.0.1:2019/config/
+HealthInterval=30s
+Volume=matrix-caddy-config:/config
+NoNewPrivileges=true
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,8 @@
+[Unit]
+Description=Restart LiveKit when its TURN certificate is renewed
+
+[Path]
+PathChanged=${caddy_data_dir}/caddy/certificates/acme-v02.api.letsencrypt.org-directory/${rtc_host}/${rtc_host}.crt
+
+[Install]
+WantedBy=default.target

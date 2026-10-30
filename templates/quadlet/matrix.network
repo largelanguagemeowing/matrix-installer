@@ -1,0 +1,7 @@
+[Network]
+NetworkName=matrix
+# Outbound IPv6 (federation with v6-only servers) via NAT66; inbound v6 reaches published ports.
+IPv6=true
+# Pinned so Synapse can have a fixed address (see matrix-synapse.container).
+Subnet=${matrix_subnet}
+Gateway=${matrix_gateway}

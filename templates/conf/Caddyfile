@@ -1,0 +1,61 @@
+{
+	email ${acme_email}
+	# Pinned so certificates land at a predictable path, which LiveKit's TURN/TLS reads.
+	acme_ca https://acme-v02.api.letsencrypt.org/directory
+	# The public listeners are systemd sockets (matrix-caddy.socket), so the redirect is explicit below.
+	auto_https disable_redirects
+}
+
+# fd/3, fd/4 and fdgram/5 are the host's 80/tcp, 443/tcp and 443/udp, passed in by systemd.
+# The plain :443 listener is inside the container, for LiveKit's webhook and the JWT service.
+(listen) {
+	bind fd/4 {
+		protocols h1 h2
+	}
+	bind fdgram/5 {
+		protocols h3
+	}
+	bind 0.0.0.0 ::
+}
+
+http:// {
+	bind fd/3
+	redir https://{host}{uri} 308
+}
+
+${matrix_host} {
+	import listen
+${wellknown}
+
+	# MatrixRTC: Matrix OpenID -> LiveKit JWT
+	handle_path /livekit/jwt/* {
+		reverse_proxy matrix-jwt:8080
+	}
+
+	# Client API, federation and media only. /_synapse/admin is deliberately not proxied.
+	@synapse path /_matrix/* /_synapse/client/*
+	handle @synapse {
+		reverse_proxy ${synapse_ip}:8008
+	}
+
+	handle {
+		respond 404
+	}
+}
+
+${chat_host} {
+	import listen
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+	}
+	reverse_proxy matrix-pinniped:8080
+}
+
+${rtc_host} {
+	import listen
+	reverse_proxy matrix-livekit:7880
+}
+
+${apex_block}

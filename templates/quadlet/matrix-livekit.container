@@ -1,0 +1,30 @@
+[Unit]
+Description=LiveKit SFU (MatrixRTC media)
+Requires=matrix-egress.service
+After=matrix-egress.service matrix-caddy.service
+
+[Container]
+ContainerName=matrix-livekit
+Image=${livekit_image}
+AutoUpdate=registry
+LogDriver=journald
+Network=matrix.network
+# Media and TURN are published on the public address. One UDP port (mux) keeps the firewall rule short.
+PublishPort=7881:7881/tcp
+PublishPort=7882:7882/udp
+PublishPort=3478:3478/udp
+PublishPort=5349:5349/tcp
+Exec=--config /etc/livekit.yaml
+Volume=${conf_dir}/livekit.yaml:/etc/livekit.yaml:ro,Z
+# TURN over TLS reuses the certificate Caddy obtains for ${rtc_host}.
+Volume=${caddy_data_dir}/caddy/certificates/acme-v02.api.letsencrypt.org-directory/${rtc_host}:/certs:ro,z
+HealthCmd=wget -q -O /dev/null http://127.0.0.1:7880/
+HealthInterval=30s
+NoNewPrivileges=true
+
+[Service]
+Restart=always
+ExecStartPre=/usr/bin/env PYTHONPATH=${repo_dir} /usr/bin/python3 -m installer.waitcert ${caddy_data_dir} ${rtc_host}
+
+[Install]
+WantedBy=default.target

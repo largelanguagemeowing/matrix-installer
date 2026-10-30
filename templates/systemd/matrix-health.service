@@ -1,0 +1,7 @@
+[Unit]
+Description=DM the admin when a Matrix stack service is down or backups are stale
+
+[Service]
+Type=oneshot
+WorkingDirectory=${repo_dir}
+ExecStart=/usr/bin/python3 -m installer.notify --health

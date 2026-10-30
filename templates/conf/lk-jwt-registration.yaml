@@ -1,0 +1,12 @@
+id: "lk-jwt-service"
+as_token: "${as_token}"
+hs_token: "${hs_token}"
+sender_localpart: "_lk_jwt_service"
+namespaces:
+  users:
+    - exclusive: false
+      regex: ".*" # must cover all local users to verify room membership
+url: null # no event traffic needed
+io.element.msc4502.scopes: ["urn:matrix:client:io.element.msc4502:rooms:is_joined"]
+io.element.msc4512.proxy_prefix: "rtc/livekit"
+io.element.msc4512.proxy_url: "http://matrix-jwt:8080"

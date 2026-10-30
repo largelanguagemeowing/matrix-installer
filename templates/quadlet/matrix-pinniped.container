@@ -1,0 +1,21 @@
+[Unit]
+Description=Pinniped web client
+Requires=matrix-egress.service
+After=matrix-egress.service
+
+[Container]
+ContainerName=matrix-pinniped
+Image=${pinniped_image}
+AutoUpdate=registry
+LogDriver=journald
+Network=matrix.network
+Volume=${conf_dir}/pinniped-config.json:/app/config.json:ro,Z
+ReadOnly=true
+Tmpfs=/tmp
+NoNewPrivileges=true
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,4 @@
+[Network]
+NetworkName=matrix-db
+# No route out: Postgres can talk to Synapse and nothing else.
+Internal=true

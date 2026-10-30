@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily Matrix stack vulnerability scan
+
+[Timer]
+OnCalendar=*-*-* 06:00:00
+RandomizedDelaySec=1h
+Persistent=true
+
+[Install]
+WantedBy=timers.target

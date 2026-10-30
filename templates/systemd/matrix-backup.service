@@ -1,0 +1,8 @@
+[Unit]
+Description=Back up and verify the Matrix stack
+
+[Service]
+Type=oneshot
+WorkingDirectory=${repo_dir}
+ExecStart=/usr/bin/python3 -m installer.backup backup
+TimeoutStartSec=3600

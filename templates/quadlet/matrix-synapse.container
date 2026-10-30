@@ -1,0 +1,40 @@
+[Unit]
+Description=Synapse Matrix homeserver
+Requires=matrix-postgres.service
+After=matrix-postgres.service
+Requires=matrix-egress.service
+After=matrix-egress.service
+
+[Container]
+ContainerName=matrix-synapse
+Image=${synapse_image}
+AutoUpdate=registry
+LogDriver=journald
+Network=matrix.network:ip=${synapse_ip}
+Network=matrix-db.network
+# Reaches lk-jwt-service for the application-service proxy (matrix-jwt.container).
+Network=matrix-jwt.network
+# No published port: Caddy is the only client (it sets X-Forwarded-For, which Synapse trusts), and
+# Synapse listens only on its pinned address. Provisioning goes through `podman exec`.
+Environment=SYNAPSE_CONFIG_PATH=/config/homeserver.yaml
+# The image's run mode drops to UID 991 without chowning /data, which a fresh rootless volume then
+# refuses to let it write (signing key). Stay as in-container root: under rootless Podman that is
+# just this unprivileged host user.
+Environment=UID=0
+Environment=GID=0
+Volume=${conf_dir}/homeserver.yaml:/config/homeserver.yaml:ro,Z
+Volume=${conf_dir}/log.yaml:/config/log.yaml:ro,Z
+Volume=${conf_dir}/lk-jwt-registration.yaml:/config/lk-jwt-registration.yaml:ro,Z
+Volume=matrix-synapse-data:/data
+HealthCmd=curl -fsS http://${synapse_ip}:8008/health
+HealthInterval=15s
+HealthStartPeriod=60s
+Notify=healthy
+NoNewPrivileges=true
+
+[Service]
+Restart=always
+TimeoutStartSec=600
+
+[Install]
+WantedBy=default.target

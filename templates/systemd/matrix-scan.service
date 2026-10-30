@@ -1,0 +1,14 @@
+[Unit]
+Description=Scan the Matrix stack with Trivy and DM when an update is needed
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=${repo_dir}
+ExecStartPre=-/usr/bin/python3 -m installer.egress --apply
+ExecStart=/usr/bin/python3 -m installer.notify
+TimeoutStartSec=1800
+# the network may not be up yet after boot, or a registry may rate-limit: retry later
+Restart=on-failure
+RestartSec=15min

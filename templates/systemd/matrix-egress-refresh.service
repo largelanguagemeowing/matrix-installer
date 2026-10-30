@@ -1,0 +1,9 @@
+[Unit]
+Description=Refresh the egress filter's host addresses and LiveKit's public media addresses
+
+[Service]
+Type=oneshot
+WorkingDirectory=${repo_dir}
+# Keep LiveKit's advertised IPv4/IPv6 media addresses current (best effort, independent of the filter).
+ExecStartPre=-/usr/bin/python3 -m installer.publicip
+ExecStart=/usr/bin/python3 -m installer.egress --apply

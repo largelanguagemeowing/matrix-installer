@@ -1,0 +1,14 @@
+[Unit]
+Description=Public HTTP(S) sockets for the bundled Caddy
+# systemd opens 80/443 on the host and hands them to the Caddy container (socket activation), so
+# Caddy sees each client's real address. Podman's rootless port forwarder would replace it with
+# the bridge gateway. The order below fixes Caddy's descriptors: fd/3, fd/4, fdgram/5.
+
+[Socket]
+ListenStream=80
+ListenStream=443
+ListenDatagram=443
+BindIPv6Only=both
+
+[Install]
+WantedBy=sockets.target

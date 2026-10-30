@@ -1,0 +1,18 @@
+[Unit]
+Description=Holds the rootless container network namespace open so egress rules persist
+
+[Container]
+ContainerName=matrix-netns
+Image=${caddy_image}
+LogDriver=journald
+Network=matrix.network
+Exec=sleep infinity
+ReadOnly=true
+NoNewPrivileges=true
+DropCapability=ALL
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target
