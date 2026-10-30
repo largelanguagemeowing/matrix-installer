@@ -31,7 +31,9 @@ def public_ports() -> str:
 
 
 def ask(prompt: str, default: str | None, assume_yes: bool) -> str:
-    if assume_yes and default is not None:
+    if assume_yes:
+        if default is None:
+            sys.exit(f"--yes: no default for {prompt!r}; pass it as a flag (see --help)")
         return default
     suffix = f" [{default}]" if default else ""
     while True:

@@ -9,8 +9,9 @@ services := core + " " + edge
 default:
     @just --list
 
+# Scripted: ADMIN_PASSWORD_FILE=pw.txt just install --yes --server-name example.org --email a@example.org --admin alice
 # One command: wizard (all questions up front) -> start -> create your account -> verify -> first scan.
-install: setup _prepare _start-core provision _start-rest
+install *args: (setup args) _prepare _start-core provision _start-rest
     just backup
     just check --wait 180 || echo 'Some checks failed (see above). Fix DNS/firewall, then rerun: just check'
     just scan --force
@@ -58,8 +59,8 @@ provision:
     python3 -m installer.provision
 
 # Add another (non-admin) user.
-user name:
-    python3 -m installer.provision --user {{name}}
+user name *args:
+    python3 -m installer.provision --user {{name}} {{args}}
 
 # Probe the running stack from outside: TLS, well-known, calls, federation, admin API closed.
 check *args:

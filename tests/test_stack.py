@@ -15,6 +15,8 @@ from installer.render import livekit_ip_config, postgres_data_mount
 from installer.waitcert import cert_dir
 from installer.notify import Finding, fingerprint, format_report, parse_pending, parse_trivy, plan_message
 from installer import services
+from installer.provision import read_password_file
+from installer.wizard import ask
 from installer.egress import ruleset
 from installer.render import render_all
 
@@ -386,6 +388,27 @@ class NotifyTest(unittest.TestCase):
         text = format_report(many, ["img"])
         self.assertIn("just update", text)
         self.assertIn("and 25 more", text)
+
+
+class ScriptedInstallTest(unittest.TestCase):
+    def test_password_file_takes_the_first_line_only(self):
+        with tempfile.NamedTemporaryFile("w", suffix=".txt") as f:
+            f.write("correct horse battery\nignored\n"); f.flush()
+            self.assertEqual(read_password_file(f.name), "correct horse battery")
+
+    def test_short_or_missing_password_file_is_refused(self):
+        with tempfile.NamedTemporaryFile("w") as f:
+            f.write("short\n"); f.flush()
+            with self.assertRaises(SystemExit):
+                read_password_file(f.name)
+        with self.assertRaises(SystemExit):
+            read_password_file("/nonexistent/pw.txt")
+
+    def test_yes_without_a_required_value_exits_instead_of_prompting(self):
+        with self.assertRaises(SystemExit) as cm:
+            ask("Email for Let's Encrypt expiry notices", None, assume_yes=True)
+        self.assertIn("pass it as a flag", str(cm.exception))
+        self.assertEqual(ask("Hostname", "matrix.example.com", assume_yes=True), "matrix.example.com")
 
 
 class ChecksTest(unittest.TestCase):

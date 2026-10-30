@@ -6,6 +6,13 @@ and health alerts that DM you on Matrix.
 
     just install     # wizard -> start -> create your account -> first verified backup -> checks
 
+Scripted (no prompts): put the admin password on the first line of a file, then
+
+    ADMIN_PASSWORD_FILE=pw.txt just install --yes --server-name example.org --email you@example.org --admin alice
+
+Hostnames default to `matrix.`, `chat.` and `rtc.` under the server name; `just setup --help` lists every flag.
+`just user bob --password-file bob.txt` adds a user the same way.
+
 Day to day: `just check` · `just health` · `just backup` · `just restore` · `just update` · `just postgres-upgrade 18`
 
 Requires podman >= 5.2, just, python3 >= 3.11 (stdlib only), x86_64, and DNS records for the matrix/chat/rtc hosts.
