@@ -355,7 +355,13 @@ class NotifyTest(unittest.TestCase):
     def test_all_clear_only_after_previous_problems(self):
         f = parse_trivy("img", TRIVY)
         self.assertIn("up to date", plan_message([], [], fingerprint(f, [])))
-        self.assertIn("just update", plan_message(f, [], ""))
+        self.assertIn("just update", plan_message(f, ["img"], ""))
+
+    def test_no_update_advice_when_no_newer_image_exists(self):
+        # found on a real host: fresh images still had fixable CVEs, and the DM said to run a no-op `just update`
+        text = plan_message(parse_trivy("img", TRIVY), [], "")
+        self.assertNotIn("just update", text)
+        self.assertIn("nothing to update", text)
 
     def test_failed_scans_are_never_reported_as_clean(self):
         import subprocess as sp

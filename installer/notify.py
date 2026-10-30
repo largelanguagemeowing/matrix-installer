@@ -72,7 +72,12 @@ def fingerprint(findings: list[Finding], pending: list[str]) -> str:
 
 
 def format_report(findings: list[Finding], pending: list[str]) -> str:
-    lines = ["⚠️ Your Matrix stack needs an update. Run `just update` on the server.", ""]
+    if pending:
+        lines = ["⚠️ Your Matrix stack needs an update. Run `just update` on the server.", ""]
+    else:
+        # Trivy calls a CVE fixable once any package release fixes it; the image may not ship that yet.
+        lines = ["⚠️ The stack's images have known vulnerabilities, but no fixed images are published yet,",
+                 "so there is nothing to update. You'll get another message when an update is available.", ""]
     if pending:
         lines.append("Newer images available:")
         lines += [f"  • {image}" for image in pending]
